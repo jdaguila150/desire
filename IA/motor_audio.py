@@ -18,18 +18,21 @@ def callback_reconocimiento(recognizer, audio):
         # LA REGLA DE NEGOCIO: Solo procesar si el usuario dice la palabra clave
         palabra_clave = "sistema"
         
-        if palabra_clave in texto:
-            print(f"\n[🎙️ HILO DE AUDIO] Comando detectado: '{texto_crudo}'")
-            # Metemos al buzón para que el main.py y Gemini hagan su trabajo
-            buzon_de_voz.put(texto_crudo)
-        else:
-            # Escuchó algo, pero no era para la IA. Lo ignoramos en silencio.
-            pass
+ 
+        buzon_de_voz.put(texto_crudo)
+        
+        # if palabra_clave in texto:
+        #     print(f"\n[HILO DE AUDIO] Comando detectado: '{texto_crudo}'")
+        #     # Metemos al buzón para que el main.py y Gemini hagan su trabajo
+        #     buzon_de_voz.put(texto_crudo)
+        # else:
+        #     # Escuchó algo, pero no era para la IA. Lo ignoramos en silencio.
+        #     pass
             
     except sr.UnknownValueError:
         pass
     except sr.RequestError as e:
-        print(f"\n[🎙️ HILO DE AUDIO] Error de conexión a internet: {e}")
+        print(f"\n[HILO DE AUDIO] Error de conexión a internet: {e}")
 
 
 def iniciar_oido_en_segundo_plano():
@@ -49,7 +52,7 @@ def iniciar_oido_en_segundo_plano():
         # 2. EL TRUCO: Forzar el umbral de energía. 
         # Valores normales van de 150 a 300. Si ponemos 3000 o 4000, 
         # el micrófono SOLO te escuchará si hablas fuerte y claro y de cerca.
-        r.energy_threshold = 3500 
+        r.energy_threshold = 3000
         
         # 3. Apagar el ajuste automático para que no se vuelva a bajar solo
         r.dynamic_energy_threshold = False 

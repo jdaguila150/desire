@@ -6,14 +6,14 @@ import threading
 # =================================================================
 # IMPORTACIÓN DE TUS MÓDULOS DE INGENIERÍA
 # =================================================================
-import config as cfg 
-from motor_vision import obtener_mascara_hsv
-from motor_ml import cargar_memoria, extraer_caracteristicas, predecir_gesto
-from controlador_os import abrir_presentacion, presionar_tecla, VK_RIGHT, VK_LEFT, VK_ESCAPE
-from motor_ppt_envivo import inyectar_diapositiva_en_vivo
-from motor_audio import iniciar_oido_en_segundo_plano, buzon_de_voz
-from motor_ia import resumir_texto_a_json
-from lector_pdf import extraer_texto_de_pdf, limpiar_texto_pdf
+import vision.config as cfg 
+from vision.motor_vision import obtener_mascara_hsv
+from vision.motor_ml import cargar_memoria, extraer_caracteristicas, predecir_gesto
+from vision.controlador_os import abrir_presentacion, presionar_tecla, VK_RIGHT, VK_LEFT, VK_ESCAPE
+from ppt.motor_ppt_envivo import inyectar_diapositiva_en_vivo
+from IA.motor_audio import iniciar_oido_en_segundo_plano, buzon_de_voz
+from IA.motor_ia import resumir_texto_a_json
+from ppt.lector_pdf import extraer_texto_de_pdf, limpiar_texto_pdf
 
 def procesar_comando_voz_en_hilo(comando_voz, contexto_pdf):
     """

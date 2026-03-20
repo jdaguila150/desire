@@ -1,9 +1,9 @@
 import os
 import time
 
-from lector_pdf import extraer_texto_de_pdf, limpiar_texto_pdf, fragmentar_texto
-from motor_ia import resumir_texto_a_json
-from motor_nlp import crear_presentacion_desde_json
+from ppt.lector_pdf import extraer_texto_de_pdf, limpiar_texto_pdf, fragmentar_texto
+from IA.motor_ia import resumir_texto_a_json
+from IA.motor_nlp import crear_presentacion_desde_json
 
 # =================================================================
 # FASE 4 (NLP): EL PIPELINE COMPLETO (PDF -> IA -> PPTX)
