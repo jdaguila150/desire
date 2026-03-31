@@ -1,0 +1,21 @@
+# --- Python (Backend) ---
+venv/
+env/
+__pycache__/
+*.pyc
+.env
+
+
+
+# --- SO y Editores ---
+.DS_Store
+.vscode/
+.idea/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+
