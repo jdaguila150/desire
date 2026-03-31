@@ -7,8 +7,8 @@ import re
 # =================================================================
 
 # 1. Configurar la llave de acceso
-# API_KEY = "AIzaSyBzdX3VNVqurSGSbc11v3qNyn4Uetx3sWs"
-API_KEY = "TU_API_KEY_AQUI"
+API_KEY = "AIzaSyBzdX3VNVqurSGSbc11v3qNyn4Uetx3sWs"
+# API_KEY = "TU_API_KEY_AQUI"
 
 # 2. Inicializar el Cliente con la arquitectura de Google
 # (Asegúrate de poner tu API Key real arriba)

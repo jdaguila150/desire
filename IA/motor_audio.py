@@ -52,7 +52,7 @@ def iniciar_oido_en_segundo_plano():
         # 2. EL TRUCO: Forzar el umbral de energía. 
         # Valores normales van de 150 a 300. Si ponemos 3000 o 4000, 
         # el micrófono SOLO te escuchará si hablas fuerte y claro y de cerca.
-        r.energy_threshold = 3000
+        r.energy_threshold = 500
         
         # 3. Apagar el ajuste automático para que no se vuelva a bajar solo
         r.dynamic_energy_threshold = False 

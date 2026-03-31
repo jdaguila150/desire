@@ -2,7 +2,8 @@
 # 1. CONFIGURACIÓN GENERAL
 # =================================================================
 RUTA_PPT = r"C:\Users\Usuario_X\Desktop\Josue\vision\apps\dess\presentaciones\numeros.pptx"
-ARCHIVO_DATASET = r"C:\Users\Usuario_X\Desktop\Josue\vision\apps\dess\cluster\dataset_gestos.csv"
+# ARCHIVO_DATASET = r"C:\Users\Usuario_X\Desktop\Josue\vision\apps\dess\cluster\dataset_gestos.csv"
+ARCHIVO_DATASET = r"C:\Users\Usuario_X\Desktop\Josue\vision\desire\vision\dataset_gestos.csv"
 
 
 

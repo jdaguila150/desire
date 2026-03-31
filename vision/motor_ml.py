@@ -1,19 +1,3 @@
-# import os
-
-# # =================================================================
-# # 2. MOTOR DE MACHINE LEARNING (Carga de Memoria)
-# # =================================================================
-# def cargar_memoria_ml():
-#     if not os.path.exists(ARCHIVO_DATASET):
-#         print(f"ERROR CRÍTICO: No se encontró la memoria '{ARCHIVO_DATASET}'.")
-#         return None, None
-#     datos = np.loadtxt(ARCHIVO_DATASET, delimiter=',', skiprows=1)
-#     etiquetas = datos[:, 0]        # 1 = Puño, 2 = Mano Abierta
-#     caracteristicas = datos[:, 1:] # Aspect Ratio y Densidad
-#     print(f"[ML] Cerebro cargado: {len(etiquetas)} patrones reconocidos.")
-#     return etiquetas, caracteristicas
-
-
 import numpy as np
 import os
 
