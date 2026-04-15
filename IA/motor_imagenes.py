@@ -6,7 +6,7 @@ import requests
 # =================================================================
 
 # Tu llave pública (Client ID) de Unsplash
-UNSPLASH_ACCESS_KEY = "gaamkFextimsT3JGTNBMKKgm3GIo-AGbpbfhFrhhhPU"
+UNSPLASH_ACCESS_KEY = ""
 
 def descargar_imagen_unsplash(query, carpeta_destino="assets"):
     """
