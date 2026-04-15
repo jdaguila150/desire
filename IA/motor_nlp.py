@@ -1,85 +1,122 @@
 from pptx import Presentation
+from pptx.util import Inches, Pt
+from pptx.dml.color import RGBColor
+from pptx.enum.text import MSO_AUTO_SIZE
+from pptx.enum.shapes import MSO_SHAPE
 import os
 
-# =================================================================
-# FASE 4 (NLP): ENSAMBLADOR DE DIAPOSITIVAS (POWERPOINT)
-# =================================================================
+# Asegúrate de importar tu motor de imágenes
+from IA.motor_imagenes import descargar_imagen_unsplash 
 
-def crear_presentacion_desde_json(datos_json, nombre_archivo="Presentacion_Generada.pptx"):
-    """
-    Toma un diccionario estructurado (la salida de Gemini)
-    y construye un archivo de PowerPoint (.pptx) real.
-    """
-    print(f"\n[ENSAMBLADOR] Iniciando la creación del archivo: {nombre_archivo}")
-    
-    # 1. Crear el objeto base de la presentación
+TEMAS = {
+    "corporativo": {"acento": RGBColor(0, 82, 165), "texto_titulo": RGBColor(0, 51, 102)},
+    "creativo": {"acento": RGBColor(255, 102, 0), "texto_titulo": RGBColor(200, 80, 0)},
+    "oscuro": {"acento": RGBColor(0, 200, 150), "texto_titulo": RGBColor(30, 30, 30)}
+}
+
+def aplicar_capa_diseno(slide, prs, color_acento):
+    barra = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, 0, 0, Inches(0.3), prs.slide_height)
+    barra.fill.solid()
+    barra.fill.fore_color.rgb = color_acento
+    barra.line.fill.background()
+
+def crear_presentacion_desde_json(datos_json, nombre_archivo="Presentacion_Final.pptx"):
     prs = Presentation()
+    tema_elegido = datos_json.get("tema", "corporativo")
+    paleta = TEMAS.get(tema_elegido, TEMAS["corporativo"])
 
-    # 2. Crear la Diapositiva de Título (Diseño 0)
-    slide_layout_titulo = prs.slide_layouts[0]
-    slide_titulo = prs.slides.add_slide(slide_layout_titulo)
-    
-    # Asignar textos al título y subtítulo
-    titulo = slide_titulo.shapes.title
-    subtitulo = slide_titulo.placeholders[1]
-    
-    # Usamos .get() por seguridad, por si la IA olvidó generar la llave "titulo_principal"
-    titulo.text = datos_json.get("titulo_principal", "Presentación Generada por IA")
-    subtitulo.text = datos_json.get("subtitulo", "Resumen Automático")
+    # --- 1. PORTADA ---
+    slide = prs.slides.add_slide(prs.slide_layouts[0])
+    aplicar_capa_diseno(slide, prs, paleta["acento"])
+    slide.shapes.title.text = datos_json.get("titulo_principal", "Desire Presentation")
+    slide.placeholders[1].text = datos_json.get("subtitulo", "Generado con IA")
 
-    # 3. Iterar sobre las diapositivas de contenido (Diseño 1: Título y Objetos)
-    slide_layout_contenido = prs.slide_layouts[1]
+    # --- 2. CICLO DE DIAPOSITIVAS ---
+    for diapo in datos_json.get("diapositivas", []):
+        layout = diapo.get("layout", "clasico")
+        titulo = diapo.get("titulo", "Sin Título")
+        lista_puntos = diapo.get("contenido", diapo.get("puntos", []))
+        texto_insight = diapo.get("insight", diapo.get("dato_extra", ""))
 
-    # Extraer la lista de diapositivas del JSON
-    lista_diapositivas = datos_json.get("diapositivas", [])
-    
-    for i, diapo_data in enumerate(lista_diapositivas):
-        slide = prs.slides.add_slide(slide_layout_contenido)
-        
-        # Asignar el título de la diapositiva
-        titulo_shape = slide.shapes.title
-        titulo_shape.text = diapo_data.get("titulo", f"Diapositiva {i+1}")
-        
-        # Asignar los puntos (bullet points) al cuerpo del texto
-        body_shape = slide.placeholders[1]
-        tf = body_shape.text_frame
-        
-        lista_puntos = diapo_data.get("puntos", [])
-        
-        for j, punto in enumerate(lista_puntos):
-            if j == 0:
-                # El primer punto se asigna directamente al primer párrafo (que ya existe por defecto)
-                tf.text = punto
-            else:
-                # Los siguientes se añaden como nuevos párrafos (viñetas)
-                p = tf.add_paragraph()
-                p.text = punto
-                p.level = 0 # Nivel de indentación base
+        query_imagen = diapo.get("query_imagen", "")
+        ruta_img_local = descargar_imagen_unsplash(query_imagen)
 
-    # 4. Guardar el archivo en el disco duro
-    ruta_guardado = os.path.join(os.getcwd(), nombre_archivo)
-    
-    try:
-        prs.save(ruta_guardado)
-        print(f"[ENSAMBLADOR] ¡Éxito! Presentación guardada correctamente en:\n -> {ruta_guardado}")
-        return ruta_guardado
-    except PermissionError:
-        print(f"[ERROR CRÍTICO] No se pudo guardar. Asegúrate de que el archivo '{nombre_archivo}' no esté abierto actualmente en PowerPoint.")
-        return None
+        # Usaremos layout 5 (Solo título) para tener un lienzo limpio y control total
+        slide = prs.slides.add_slide(prs.slide_layouts[5])
+        aplicar_capa_diseno(slide, prs, paleta["acento"])
 
-# =================================================================
-# PRUEBA UNITARIA RÁPIDA (Opcional)
-# =================================================================
-if __name__ == "__main__":
-    # Datos de prueba para verificar que python-pptx está funcionando bien
-    datos_prueba = {
-        "titulo_principal": "Prueba del Motor NLP",
-        "subtitulo": "Sistema de Ensamblaje Funcional",
-        "diapositivas": [
-            {
-                "titulo": "¿Funciona el código?",
-                "puntos": ["Sí, los paquetes se instalaron correctamente.", "El archivo .pptx se generó sin errores."]
-            }
-        ]
-    }
-    crear_presentacion_desde_json(datos_prueba, "Prueba_Ensamblador.pptx")
+        # Control del Título
+        title_shape = slide.shapes.title
+        title_shape.text = titulo
+        title_shape.text_frame.paragraphs[0].font.color.rgb = paleta["texto_titulo"]
+
+        # --- DISEÑO DESTACADO ---
+        if layout == "destacado":
+            ancho_texto = Inches(4) if ruta_img_local else Inches(8)
+            text_box = slide.shapes.add_textbox(Inches(0.8), Inches(2.5), ancho_texto, Inches(3))
+            tf = text_box.text_frame
+            tf.word_wrap = True
+            tf.auto_size = MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE
+
+            p = tf.paragraphs[0]
+            p.text = texto_insight if texto_insight else titulo
+            p.font.size = Pt(44)
+            p.font.bold = True
+            p.font.color.rgb = paleta["texto_titulo"]
+
+            if ruta_img_local:
+                slide.shapes.add_picture(ruta_img_local, Inches(5.2), Inches(1.5), width=Inches(4.3))
+
+        # --- DISEÑO INSIGHT ---
+        elif layout == "insight":
+            ancho_texto = Inches(4.2) if ruta_img_local else Inches(8)
+            
+            # Dibujamos nuestra propia caja de texto EXACTAMENTE donde la queremos
+            caja_puntos = slide.shapes.add_textbox(Inches(0.8), Inches(1.8), ancho_texto, Inches(3.2))
+            tf = caja_puntos.text_frame
+            tf.word_wrap = True
+
+            for i, pto in enumerate(lista_puntos):
+                p = tf.paragraphs[0] if i == 0 else tf.add_paragraph()
+                p.text = pto
+                p.font.size = Pt(22)
+                p.level = 0               # <--- FUERZA LA VIÑETA
+                p.space_after = Pt(14)    # <--- EVITA QUE SE ENCIMEN
+
+            if ruta_img_local:
+                slide.shapes.add_picture(ruta_img_local, Inches(5.2), Inches(1.5), width=Inches(4.3))
+
+            if texto_insight:
+                caja = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(0.5), Inches(5.3), Inches(9), Inches(1.5))
+                caja.fill.solid()
+                caja.fill.fore_color.rgb = paleta["acento"]
+                caja.line.fill.background()
+
+                tf_ins = caja.text_frame
+                p_ins = tf_ins.paragraphs[0]
+                p_ins.text = f"💡 {texto_insight}"
+                p_ins.font.size = Pt(22)
+                p_ins.font.bold = True
+                p_ins.font.color.rgb = RGBColor(255, 255, 255)
+
+        # --- DISEÑO CLÁSICO ---
+        else:
+            ancho_texto = Inches(4.2) if ruta_img_local else Inches(8)
+            
+            # Dibujamos nuestra propia caja de texto
+            caja_puntos = slide.shapes.add_textbox(Inches(0.8), Inches(1.8), ancho_texto, Inches(4))
+            tf = caja_puntos.text_frame
+            tf.word_wrap = True
+
+            for i, pto in enumerate(lista_puntos):
+                p = tf.paragraphs[0] if i == 0 else tf.add_paragraph()
+                p.text = pto
+                p.font.size = Pt(24)
+                p.level = 0               # <--- FUERZA LA VIÑETA
+                p.space_after = Pt(14)    # <--- EVITA QUE SE ENCIMEN
+
+            if ruta_img_local:
+                slide.shapes.add_picture(ruta_img_local, Inches(5.2), Inches(1.8), width=Inches(4.3))
+
+    prs.save(nombre_archivo)
+    return nombre_archivo
