@@ -7,7 +7,7 @@ import json
 # =================================================================
 
 # 1. Configurar la llave de acceso
-API_KEY = "AIzaSyBbmrCxoG0spKTQ2zZgn-eUK62K-uOcEGw" 
+API_KEY = "" 
 
 if API_KEY != "TU_API_KEY_AQUI":
     cliente = genai.Client(api_key=API_KEY)
