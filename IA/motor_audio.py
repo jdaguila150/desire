@@ -13,27 +13,39 @@ buzon_de_voz = queue.Queue()
 def callback_reconocimiento(recognizer, audio):
     try:
         texto_crudo = recognizer.recognize_google(audio, language="es-MX")
-        texto = texto_crudo.lower() # Convertir a minúsculas para evaluar fácil
+        texto = texto_crudo.lower() 
         
-        # LA REGLA DE NEGOCIO: Solo procesar si el usuario dice la palabra clave
-        palabra_clave = "sistema"
+        # 1. Definimos una tupla o lista con todas las formas naturales de pedirlo
+        # Puedes agregar todas las variaciones que suelas usar al exponer
+        frases_gatillo = [
+            "en la siguiente diapositiva",
+            "seguido veremos",
+            "vamos a pasar con el tema de",
+            "hablemos ahora sobre",
+            "el siguiente punto es",
+            "pasemos a ver",
+            "me gustaría explicarles"
+        ]
         
- 
-        buzon_de_voz.put(texto_crudo)
-        
-        # if palabra_clave in texto:
-        #     print(f"\n[HILO DE AUDIO] Comando detectado: '{texto_crudo}'")
-        #     # Metemos al buzón para que el main.py y Gemini hagan su trabajo
-        #     buzon_de_voz.put(texto_crudo)
-        # else:
-        #     # Escuchó algo, pero no era para la IA. Lo ignoramos en silencio.
-        #     pass
+        # 2. La Regla de Negocio: Evaluamos si ALGUNA de las frases está en el texto
+        # any() devolverá True en el instante en que encuentre una coincidencia
+        if any(gatillo in texto for gatillo in frases_gatillo):
+            print(f"\n[HILO DE AUDIO 🎤] Intención detectada: '{texto_crudo}'")
+            
+            # Metemos TODO el texto al buzón. 
+            # (Ej: "bueno compañeros, vamos a pasar con el tema de redes neuronales")
+            buzon_de_voz.put(texto_crudo)
+        else:
+            # Escuchó algo, pero era charla normal de tu exposición. Lo ignoramos.
+            pass
             
     except sr.UnknownValueError:
+        # Ruido de fondo o palabras incomprensibles
         pass
     except sr.RequestError as e:
-        print(f"\n[HILO DE AUDIO] Error de conexión a internet: {e}")
+        print(f"\n[HILO DE AUDIO ❌] Error de conexión a internet: {e}")
 
+        
 
 def iniciar_oido_en_segundo_plano():
     """

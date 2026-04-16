@@ -116,19 +116,3 @@ if __name__ == "__main__":
     if len(chunks) > 1:
         print(chunks[1])
 
-
-# # =================================================================
-# # PRUEBA DEL MÓDULO
-# # =================================================================
-# if __name__ == "__main__":
-#     # Cambia esto por el nombre de un PDF real que tengas en la misma carpeta
-#     archivo_prueba = "prueba1.pdf" 
-    
-#     texto_extraido = extraer_texto_de_pdf(archivo_prueba)
-    
-#     if texto_extraido:
-#         print("================ TEXTO EXTRAÍDO ================\n")
-#         # Imprimimos solo los primeros 1000 caracteres para no inundar la consola
-#         print(texto_extraido[:1000]) 
-#         print("\n================================================")
-#         print("[ÉXITO] El texto fue extraído y está guardado en la memoria (variable 'texto_extraido').")
