@@ -1,13 +1,20 @@
 from google import genai
 from google.genai import types
 import json
+from dotenv import load_dotenv
+import os
 
 # =================================================================
 # FASE 4 (NLP): MOTOR DE INTELIGENCIA ARTIFICIAL (DISEÑADOR)
 # =================================================================
 
 # 1. Configurar la llave de acceso
-API_KEY = "" 
+load_dotenv()
+
+API_KEY = os.getenv("GEMINI_API_KEY")
+
+if not API_KEY:
+    raise ValueError("[ALERTA] No se encontró la llave de Gemini en el archivo .env")
 
 if API_KEY != "TU_API_KEY_AQUI":
     cliente = genai.Client(api_key=API_KEY)

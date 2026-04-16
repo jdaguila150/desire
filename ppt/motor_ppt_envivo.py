@@ -1,68 +1,73 @@
 import win32com.client
 import time
+import os
 
 # =================================================================
 # FASE 4 (AVANZADA): MOTOR DE INYECCIÓN EN TIEMPO REAL (pywin32)
 # =================================================================
 
-def inyectar_diapositiva_en_vivo(titulo_texto, puntos_lista):
+def inyectar_diapositiva_en_vivo(titulo_texto, puntos_lista, ruta_imagen=None):
     """
     Se conecta al proceso activo de PowerPoint y dibuja una nueva 
-    diapositiva al final de la presentación sin cerrar el archivo.
+    diapositiva. Si recibe una ruta de imagen, auto-maqueta el layout.
     """
     try:
-        # 1. Engancharse al PowerPoint que ya se está ejecutando
-        # Si no hay ninguno abierto, esto abrirá PowerPoint en segundo plano
         ppt_app = win32com.client.Dispatch("PowerPoint.Application")
-        
-        # Asegurarnos de que la ventana sea visible
         ppt_app.Visible = True 
         
-        # 2. Obtener la presentación activa (la que estamos viendo)
         try:
             presentacion = ppt_app.ActivePresentation
         except Exception:
             print("[ERROR] No tienes ninguna presentación abierta. Abre una primero.")
             return False
 
-        # 3. Calcular en qué número de diapositiva vamos a insertar la nueva
         total_diapositivas = presentacion.Slides.Count
         indice_nueva = total_diapositivas + 1
 
-        # 4. Crear la nueva diapositiva (El 2 significa Diseño de Título y Objetos/Viñetas)
         nueva_slide = presentacion.Slides.Add(indice_nueva, 2)
 
         # 5. Inyectar el Título
-        # Shapes(1) suele ser el cuadro del título
         nueva_slide.Shapes(1).TextFrame.TextRange.Text = titulo_texto
 
         # 6. Inyectar los puntos (Viñetas / Bullets)
-        # Shapes(2) suele ser el cuadro del cuerpo del texto
         cuerpo_texto = nueva_slide.Shapes(2).TextFrame.TextRange
-        
         texto_completo = ""
         for i, punto in enumerate(puntos_lista):
             texto_completo += punto
             if i < len(puntos_lista) - 1:
-                texto_completo += "\n" # Salto de línea para la siguiente viñeta
+                texto_completo += "\n" 
                 
         cuerpo_texto.Text = texto_completo
 
+        # =========================================================
+        # 7. INYECCIÓN DE IMAGEN Y MAQUETACIÓN DINÁMICA (NUEVO)
+        # =========================================================
+        if ruta_imagen and os.path.exists(ruta_imagen):
+            print(f"[COM INTEROP] Maquetando imagen en coordenadas cartesianas...")
+            
+            # En la API COM, 72 puntos = 1 pulgada. Una slide 16:9 mide aprox 960x540.
+            # Reducimos el ancho del cuadro de texto a la mitad para hacer espacio
+            nueva_slide.Shapes(2).Width = 450 
+            
+            # Posicionamos la imagen a la derecha (Left=500, Top=130, Width=400)
+            # El -1 en el Height obliga a PowerPoint a mantener la proporción original (Aspect Ratio)
+            # AddPicture(FileName, LinkToFile (0=False), SaveWithDocument (-1=True), Left, Top, Width, Height)
+            nueva_slide.Shapes.AddPicture(ruta_imagen, 0, -1, 500, 130, 400, -1)
+        # =========================================================
+
         print(f"[COM INTEROP] ¡Inyección exitosa! Se agregó: '{titulo_texto}'")
         
-        # 7. (Opcional) Si estás en modo presentación (F5), saltar a la nueva diapositiva
         try:
             if ppt_app.SlideShowWindows.Count > 0:
                 ppt_app.SlideShowWindows(1).View.GotoSlide(indice_nueva)
         except Exception as e:
-            pass # Si no está en F5, no pasa nada
+            pass 
 
         return True
 
     except Exception as e:
         print(f"[ERROR CRÍTICO DEL SISTEMA OS] No se pudo comunicar con PowerPoint: {e}")
         return False
-
 # =================================================================
 # PRUEBA DE CAMPO
 # =================================================================

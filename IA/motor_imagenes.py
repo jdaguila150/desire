@@ -1,14 +1,20 @@
 import os
 import requests
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # =================================================================
 # MOTOR DE DESCARGA VISUAL (UNSPLASH API)
 # =================================================================
 
 # Tu llave pública (Client ID) de Unsplash
-UNSPLASH_ACCESS_KEY = ""
+UNSPLASH_ACCESS_KEY = os.getenv("UNSPLASH_ACCESS_KEY")
+if not UNSPLASH_ACCESS_KEY:
+    raise ValueError("[ALERTA] No se encontró la llave de Unsplash en el archivo .env")
 
 def descargar_imagen_unsplash(query, carpeta_destino="assets"):
+    
     """
     Busca una imagen en Unsplash usando la palabra clave de la IA,
     la descarga en formato horizontal y devuelve la ruta local.
