@@ -32,31 +32,83 @@ def descargar_modelo_si_no_existe():
 def procesar_comando_voz_en_hilo(comando_voz, contexto_pdf):
     print(f"\n[HILO IA] Procesando tu petición: '{comando_voz}'...")
     
-    try:
-        prompt_combinado = f"INSTRUCCIÓN: {comando_voz}\nCONTEXTO:\n{contexto_pdf[:3000]}"
-        json_generado = resumir_texto_a_json(prompt_combinado)
+    # try:
+    #     prompt_combinado = f"INSTRUCCIÓN: {comando_voz}\nCONTEXTO:\n{contexto_pdf}"
+    #     json_generado = resumir_texto_a_json(prompt_combinado)
         
-        if json_generado and "diapositivas" in json_generado and len(json_generado["diapositivas"]) > 0:
-            diapo = json_generado["diapositivas"][0]
-            titulo = diapo.get("titulo", "Nuevo Tema")
-            puntos = diapo.get("puntos", [])
-            query_visual = diapo.get("query_imagen", "")
+    #     if json_generado and "diapositivas" in json_generado and len(json_generado["diapositivas"]) > 0:
+    #         diapo = json_generado["diapositivas"][0]
+    #         titulo = diapo.get("titulo", "Nuevo Tema")
+    #         puntos = diapo.get("puntos", [])
+    #         query_visual = diapo.get("query_imagen", "")
 
             
-            ruta_foto = None
-            if query_visual:
-                print(f"[HILO IA] El modelo solicitó una imagen sobre: '{query_visual}'")
-                # Descargamos la imagen antes de inyectar
-                ruta_relativa = descargar_imagen_unsplash(query_visual)
-                if ruta_relativa:
-                    # 2. VITAL PARA POWERPOINT: Convertimos la ruta 'assets/foto.jpg' 
-                    # a una ruta completa 'C:\Users\...\assets\foto.jpg'
-                    ruta_foto = os.path.abspath(ruta_relativa)
-                print("\n[INYECTOR] Disparando a PowerPoint...")
-            print("\n[INYECTOR] ¡Datos listos! Disparando a PowerPoint...")
+    #         ruta_foto = None
+    #         if query_visual:
+    #             print(f"[HILO IA] El modelo solicitó una imagen sobre: '{query_visual}'")
+    #             # Descargamos la imagen antes de inyectar
+    #             ruta_relativa = descargar_imagen_unsplash(query_visual)
+    #             if ruta_relativa:
+    #                 # 2. VITAL PARA POWERPOINT: Convertimos la ruta 'assets/foto.jpg' 
+    #                 # a una ruta completa 'C:\Users\...\assets\foto.jpg'
+    #                 ruta_foto = os.path.abspath(ruta_relativa)
+    #             print("\n[INYECTOR] Disparando a PowerPoint...")
+    #         print("\n[INYECTOR] ¡Datos listos! Disparando a PowerPoint...")
             
-            # Pasamos la ruta de la foto (puede ser None si no hubo query o si falló la descarga)
-            inyectar_diapositiva_en_vivo(titulo, puntos, ruta_foto)
+    #         # Pasamos la ruta de la foto (puede ser None si no hubo query o si falló la descarga)
+    #         inyectar_diapositiva_en_vivo(titulo, puntos, ruta_foto)
+            
+    #     else:
+    #         print("\n[ALERTA] La IA no pudo generar el formato correcto.")
+            
+    # except Exception as e:
+    #     import traceback
+    #     print("\n❌ FATAL ERROR EN EL HILO DE IA ❌")
+    #     print(traceback.format_exc())
+
+
+    try:
+        # 1. INGENIERÍA DE PROMPTS: Le damos las reglas del juego a Gemini
+        reglas_negocio = """
+        REGLA DE CANTIDAD:
+        - Si el usuario dice "diapositiva", "siguiente", o pide un tema muy específico, genera EXACTAMENTE UNA (1) diapositiva.
+        - Si el usuario dice "generar presentación", "crear el bloque", "todo el tema", genera MÚLTIPLES diapositivas que cubran la información.
+        """
+        
+        prompt_combinado = f"{reglas_negocio}\nINSTRUCCIÓN: {comando_voz}\nCONTEXTO:\n{contexto_pdf}"
+        json_generado = resumir_texto_a_json(prompt_combinado)
+        
+        # 2. EL BUCLE ITERATIVO (Soporta 1 o N diapositivas)
+        if json_generado and "diapositivas" in json_generado and len(json_generado["diapositivas"]) > 0:
+            
+            total_diapos = len(json_generado["diapositivas"])
+            print(f"\n[HILO IA] La IA interpretó tu intención y generará {total_diapos} diapositiva(s).")
+            
+            # Recorremos cada elemento que nos haya devuelto Gemini
+            for index, diapo in enumerate(json_generado["diapositivas"]):
+                print(f"\n--- Procesando Diapositiva {index + 1} de {total_diapos} ---")
+                
+                titulo = diapo.get("titulo", "Nuevo Tema")
+                puntos = diapo.get("puntos", [])
+                query_visual = diapo.get("query_imagen", "")
+                
+                ruta_foto = None
+                if query_visual:
+                    print(f"[API VISUAL] Solicitando imagen de: '{query_visual}'")
+                    ruta_relativa = descargar_imagen_unsplash(query_visual)
+                    
+                    if ruta_relativa:
+                        ruta_foto = os.path.abspath(ruta_relativa)
+                
+                print(f"[INYECTOR] Escribiendo en PowerPoint: {titulo}...")
+                inyectar_diapositiva_en_vivo(titulo, puntos, ruta_foto)
+                
+                # VITAL: Pausa de seguridad para el sistema operativo
+                # PowerPoint (API COM) puede colapsar si le inyectamos 5 fotos en el mismo milisegundo.
+                if total_diapos > 1:
+                    time.sleep(1.5)
+            
+            print("\n[SISTEMA] ¡Ciclo de generación finalizado con éxito!")
             
         else:
             print("\n[ALERTA] La IA no pudo generar el formato correcto.")
@@ -77,7 +129,7 @@ def iniciar_sistema_maestro():
 
     # 2. Cargar conocimiento base
     print("\n[SISTEMA] Leyendo base de datos local (PDF)...")
-    texto_crudo = extraer_texto_de_pdf("pinguino.pdf") 
+    texto_crudo = extraer_texto_de_pdf("Documento_ Sistema_Desire.pdf") 
     texto_base = limpiar_texto_pdf(texto_crudo) if texto_crudo else ""
 
     # 3. Iniciar hilos secundarios (Audio)

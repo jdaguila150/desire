@@ -67,10 +67,34 @@ def resumir_texto_a_json(texto_fragmento):
     
     print("Enviando texto a la IA para análisis de diseño instruccional...")
     
+    # try:
+    #     # Hacemos la llamada obligando a Gemini a responder en formato JSON Nativo
+    #     respuesta = cliente.models.generate_content(
+    #         # model='gemini-2.5-flash',
+    #         model='gemini-3.1-pro-preview',
+    #         contents=prompt_final,
+    #         config=types.GenerateContentConfig(
+    #             response_mime_type="application/json",
+    #         )
+    #     )
+        
+    #     # Como usamos application/json, la respuesta ya es un string JSON puro y perfecto
+    #     diccionario_json = json.loads(respuesta.text)
+        
+    #     return diccionario_json
+        
+    # except json.JSONDecodeError:
+    #     print("[ERROR CRÍTICO] Fallo en la decodificación JSON nativa.")
+    #     return None
+    # except Exception as e:
+    #     print(f"[ERROR DE RED O API] {e}")
+    #     return None
+
     try:
         # Hacemos la llamada obligando a Gemini a responder en formato JSON Nativo
         respuesta = cliente.models.generate_content(
-            model='gemini-2.5-flash',
+            # model='gemini-2.5-flash', # <--- Flash es ideal para latencia en vivo
+            model='gemini-2.5-flash-lite', 
             contents=prompt_final,
             config=types.GenerateContentConfig(
                 response_mime_type="application/json",
@@ -79,14 +103,20 @@ def resumir_texto_a_json(texto_fragmento):
         
         # Como usamos application/json, la respuesta ya es un string JSON puro y perfecto
         diccionario_json = json.loads(respuesta.text)
+        print("DICCIONARIO JSON", diccionario_json)
         
+        print("[INTELIGENCIA ARTIFICIAL] JSON estructurado correctamente.")
         return diccionario_json
         
-    except json.JSONDecodeError:
-        print("[ERROR CRÍTICO] Fallo en la decodificación JSON nativa.")
+    except json.JSONDecodeError as e:
+        print(f"[ERROR CRÍTICO] Fallo en la decodificación JSON nativa: {e}")
+        # Si falla, imprimimos lo que sea que haya devuelto para saber por qué se rompió
+        if 'respuesta' in locals():
+            print(f"-> Respuesta cruda de la API:\n{respuesta.text}")
         return None
+        
     except Exception as e:
-        print(f"[ERROR DE RED O API] {e}")
+        print(f"[ERROR DE RED O API] Fallo en la comunicación con Google: {e}")
         return None
 # =================================================================
 # PRUEBA DEL MÓDULO (Generación de JSON)
