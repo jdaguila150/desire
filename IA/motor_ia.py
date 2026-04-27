@@ -67,28 +67,7 @@ def resumir_texto_a_json(texto_fragmento):
     
     print("Enviando texto a la IA para análisis de diseño instruccional...")
     
-    # try:
-    #     # Hacemos la llamada obligando a Gemini a responder en formato JSON Nativo
-    #     respuesta = cliente.models.generate_content(
-    #         # model='gemini-2.5-flash',
-    #         model='gemini-3.1-pro-preview',
-    #         contents=prompt_final,
-    #         config=types.GenerateContentConfig(
-    #             response_mime_type="application/json",
-    #         )
-    #     )
-        
-    #     # Como usamos application/json, la respuesta ya es un string JSON puro y perfecto
-    #     diccionario_json = json.loads(respuesta.text)
-        
-    #     return diccionario_json
-        
-    # except json.JSONDecodeError:
-    #     print("[ERROR CRÍTICO] Fallo en la decodificación JSON nativa.")
-    #     return None
-    # except Exception as e:
-    #     print(f"[ERROR DE RED O API] {e}")
-    #     return None
+
 
     try:
         # Hacemos la llamada obligando a Gemini a responder en formato JSON Nativo
@@ -98,11 +77,13 @@ def resumir_texto_a_json(texto_fragmento):
             contents=prompt_final,
             config=types.GenerateContentConfig(
                 response_mime_type="application/json",
+                temperature=0.2,
             )
         )
+
         
         # Como usamos application/json, la respuesta ya es un string JSON puro y perfecto
-        diccionario_json = json.loads(respuesta.text)
+        diccionario_json = json.loads(respuesta.text, strict=False)
         print("DICCIONARIO JSON", diccionario_json)
         
         print("[INTELIGENCIA ARTIFICIAL] JSON estructurado correctamente.")
@@ -110,14 +91,19 @@ def resumir_texto_a_json(texto_fragmento):
         
     except json.JSONDecodeError as e:
         print(f"[ERROR CRÍTICO] Fallo en la decodificación JSON nativa: {e}")
-        # Si falla, imprimimos lo que sea que haya devuelto para saber por qué se rompió
-        if 'respuesta' in locals():
-            print(f"-> Respuesta cruda de la API:\n{respuesta.text}")
-        return None
-        
+        # Intentamos una limpieza rápida si falla la primera vez
+        try:
+            texto_limpio = respuesta.text.replace('\\', '\\\\') # Escapamos barras a la fuerza
+            return json.loads(texto_limpio, strict=False)
+        except:
+            if 'respuesta' in locals():
+                print(f"-> Respuesta cruda con error:\n{respuesta.text}")
+            return None
     except Exception as e:
         print(f"[ERROR DE RED O API] Fallo en la comunicación con Google: {e}")
         return None
+
+
 # =================================================================
 # PRUEBA DEL MÓDULO (Generación de JSON)
 # =================================================================
